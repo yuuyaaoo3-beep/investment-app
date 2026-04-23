@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="投資管理">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
+    <title>投資管理アプリ</title>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border: #475569;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, #0a0f1e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: 80px;
+            overflow-x: hidden;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-header h1::before {
+            content: "¥";
+            font-size: 28px;
+            color: var(--accent);
+        }
+
+        .tab-navigation {
+            display: flex;
+            background: var(--bg-secondary);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            border-top: 1px solid var(--border);
+            box-shadow: 0 -4px 20px var(--shadow);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tab-button.active {
+            color: var(--primary-light);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .tab-button svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 2px;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .month-selector {
+            background: var(--bg-secondary);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .month-selector label {
+            display: block;
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .month-selector input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .category-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .category-header h3 {
+            font-size: 18px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .add-product-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .add-product-btn:active {
+            transform: scale(0.95);
+        }
+
+        .product-item {
+            background: var(--bg-tertiary);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .delete-product-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 15px;
+        }
+
+        .profit-loss-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .profit-loss-group select {
+            width: 80px;
+        }
+
+        .profit-loss-group input {
+            flex: 1;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 24px;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .save-btn:active {
+            transform: scale(0.98);
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .summary-card h2 {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .summary-card .amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .summary-card .profit-loss {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .chart-container h3 {
+            font-size: 16px;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        .record-list {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 24px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .record-list h3 {
+            font-size: 16px;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .record-item {
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border);
+        }
+
+        .record-item:active {
+            transform: scale(0.98);
+            background: var(--bg-primary);
+        }
+
+        .record-item-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .record-item-month {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .record-item-total {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .record-item-profit {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .settings-section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .settings-section h3 {
+            font-size: 18px;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .allocation-input {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .allocation-input label {
+            flex: 1;
+            font-size: 15px;
+            color: var(--text-secondary);
+        }
+
+        .allocation-input input {
+            width: 80px;
+            padding: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            text-align: right;
+        }
+
+        .allocation-input span {
+            color: var(--text-secondary);
+        }
+
+        .tag-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tag-item {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .tag-item input {
+            flex: 1;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+        }
+
+        .tag-item button {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .add-tag-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 12px;
+            font-weight: 500;
+        }
+
+        .target-allocation {
+            background: var(--bg-tertiary);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .target-allocation h4 {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .allocation-diff {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .allocation-diff .label {
+            color: var(--text-secondary);
+        }
+
+        .allocation-diff .value {
+            font-weight: 600;
+        }
+
+        .allocation-diff .value.positive {
+            color: var(--secondary);
+        }
+
+        .allocation-diff .value.negative {
+            color: var(--danger);
+        }
+
+        canvas {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <h1>投資管理</h1>
+    </div>
+
+    <div id="recordTab" class="tab-content active">
+        <div class="month-selector">
+            <label>記録年月</label>
+            <input type="month" id="recordMonth">
+        </div>
+
+        <div id="categoriesContainer"></div>
+
+        <button class="save-btn" onclick="saveRecord()">記録する</button>
+    </div>
+
+    <div id="progressTab" class="tab-content">
+        <div class="summary-card">
+            <h2>総資産額</h2>
+            <div class="amount" id="totalAssets">¥0</div>
+            <div class="profit-loss" id="totalProfitLoss">損益: ¥0</div>
+        </div>
+
+        <div class="chart-container">
+            <h3>資産推移（棒グラフ）</h3>
+            <div class="chart-wrapper">
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h3>資産割合（円グラフ）</h3>
+            <div class="chart-wrapper">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+
+        <div class="target-allocation" id="allocationDiff">
+            <h4>目標保有割合との差分</h4>
+        </div>
+
+        <div class="record-list">
+            <h3>記録履歴</h3>
+            <div id="recordListContainer"></div>
+        </div>
+    </div>
+
+    <div id="settingsTab" class="tab-content">
+        <div class="settings-section">
+            <h3>目標資産保有割合</h3>
+            <div id="targetAllocationInputs"></div>
+        </div>
+
+        <div class="settings-section">
+            <h3>タグ管理</h3>
+            <div class="tag-list" id="tagList"></div>
+            <button class="add-tag-btn" onclick="addNewTag()">＋ タグを追加</button>
+        </div>
+    </div>
+
+    <nav class="tab-navigation">
+        <button class="tab-button active" onclick="switchTab('recordTab')">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+            </svg>
+            記録
+        </button>
+        <button class="tab-button" onclick="switchTab('progressTab')">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+            </svg>
+            推移
+        </button>
+        <button class="tab-button" onclick="switchTab('settingsTab')">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+            </svg>
+            設定
+        </button>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // データ構造
+        let appData = {
+            records: [], // {month: "2024-01", categories: {...}}
+            tags: ["現金", "株式(分散)", "株式(集中)"],
+            targetAllocation: {
+                "現金": 30,
+                "株式(分散)": 50,
+                "株式(集中)": 20
+            }
+        };
+
+        const categories = ["現金", "NISA（積立枠）", "NISA（成長投資枠）", "iDeco"];
+
+        // ローカルストレージからデータ読み込み
+        function loadData() {
+            const saved = localStorage.getItem('investmentAppData');
+            if (saved) {
+                appData = JSON.parse(saved);
+            }
+        }
+
+        // ローカルストレージにデータ保存
+        function saveData() {
+            localStorage.setItem('investmentAppData', JSON.stringify(appData));
+        }
+
+        // 初期化
+        function init() {
+            loadData();
+            renderCategories();
+            renderSettings();
+            setDefaultMonth();
+            updateProgressTab();
+        }
+
+        // デフォルト月を設定
+        function setDefaultMonth() {
+            const monthInput = document.getElementById('recordMonth');
+            if (appData.records.length > 0) {
+                // 最新の記録月の翌月を設定
+                const latestMonth = appData.records[appData.records.length - 1].month;
+                const [year, month] = latestMonth.split('-').map(Number);
+                const nextMonth = month === 12 ? 1 : month + 1;
+                const nextYear = month === 12 ? year + 1 : year;
+                monthInput.value = `${nextYear}-${String(nextMonth).padStart(2, '0')}`;
+            } else {
+                monthInput.value = '';
+            }
+        }
+
+        // カテゴリ表示を生成
+        function renderCategories() {
+            const container = document.getElementById('categoriesContainer');
+            const selectedMonth = document.getElementById('recordMonth').value;
+            const existingRecord = appData.records.find(r => r.month === selectedMonth);
+
+            container.innerHTML = categories.map(category => `
+                <div class="category-section">
+                    <div class="category-header">
+                        <h3>${category}</h3>
+                        <button class="add-product-btn" onclick="addProduct('${category}')">＋ 追加</button>
+                    </div>
+                    <div id="products-${category.replace(/[（）]/g, '')}" class="products-container">
+                        ${existingRecord ? renderProducts(category, existingRecord.categories[category] || []) : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 商品表示を生成
+        function renderProducts(category, products) {
+            return products.map((product, index) => `
+                <div class="product-item">
+                    <div class="product-header">
+                        <span style="font-weight: 600;">商品 ${index + 1}</span>
+                        <button class="delete-product-btn" onclick="deleteProduct('${category}', ${index})">削除</button>
+                    </div>
+                    ${renderProductInputs(category, product, index)}
+                </div>
+            `).join('');
+        }
+
+        // 商品入力フィールドを生成
+        function renderProductInputs(category, product, index) {
+            const isCash = category === "現金";
+            const productNameInputId = `productName-${category.replace(/[（）]/g, '')}-${index}`;
+            
+            return `
+                <div class="input-group">
+                    <label>商品名</label>
+                    <input type="text" 
+                           id="${productNameInputId}"
+                           value="${product.name || ''}" 
+                           onchange="updateProductTag('${category}', ${index}, this.value)"
+                           placeholder="商品名を入力">
+                </div>
+                ${isCash ? `
+                    <div class="input-group">
+                        <label>金額（万円）</label>
+                        <input type="number" id="amount-${category.replace(/[（）]/g, '')}-${index}" value="${product.amount || ''}" placeholder="0">
+                    </div>
+                ` : `
+                    <div class="input-group">
+                        <label>評価額（万円）</label>
+                        <input type="number" id="valuation-${category.replace(/[（）]/g, '')}-${index}" value="${product.valuation || ''}" placeholder="0">
+                    </div>
+                    <div class="input-group">
+                        <label>損益額</label>
+                        <div class="profit-loss-group">
+                            <select id="profitSign-${category.replace(/[（）]/g, '')}-${index}">
+                                <option value="+" ${product.profitSign === '+' ? 'selected' : ''}>＋</option>
+                                <option value="-" ${product.profitSign === '-' ? 'selected' : ''}>－</option>
+                            </select>
+                            <input type="number" id="profitAmount-${category.replace(/[（）]/g, '')}-${index}" value="${product.profitAmount || ''}" placeholder="0">
+                        </div>
+                    </div>
+                `}
+                <div class="input-group">
+                    <label>タグ</label>
+                    <select id="tag-${category.replace(/[（）]/g, '')}-${index}">
+                        <option value="">選択してください</option>
+                        ${appData.tags.map(tag => `
+                            <option value="${tag}" ${product.tag === tag ? 'selected' : ''}>${tag}</option>
+                        `).join('')}
+                    </select>
+                </div>
+            `;
+        }
+
+        // 商品追加
+        function addProduct(category) {
+            const container = document.getElementById(`products-${category.replace(/[（）]/g, '')}`);
+            const index = container.children.length;
+            const productDiv = document.createElement('div');
+            productDiv.className = 'product-item';
+            productDiv.innerHTML = `
+                <div class="product-header">
+                    <span style="font-weight: 600;">商品 ${index + 1}</span>
+                    <button class="delete-product-btn" onclick="deleteProduct('${category}', ${index})">削除</button>
+                </div>
+                ${renderProductInputs(category, {}, index)}
+            `;
+            container.appendChild(productDiv);
+        }
+
+        // 商品削除
+        function deleteProduct(category, index) {
+            const container = document.getElementById(`products-${category.replace(/[（）]/g, '')}`);
+            container.children[index].remove();
+            // 再番号付け
+            Array.from(container.children).forEach((child, newIndex) => {
+                child.querySelector('.product-header span').textContent = `商品 ${newIndex + 1}`;
+            });
+        }
+
+        // 商品名変更時にタグを自動反映
+        function updateProductTag(category, index, productName) {
+            if (!productName) return;
+
+            // 過去の記録から同じ商品名を探す
+            for (const record of appData.records) {
+                for (const cat in record.categories) {
+                    const product = record.categories[cat].find(p => p.name === productName);
+                    if (product && product.tag) {
+                        const tagSelect = document.getElementById(`tag-${category.replace(/[（）]/g, '')}-${index}`);
+                        if (tagSelect) {
+                            tagSelect.value = product.tag;
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+
+        // 記録保存
+        function saveRecord() {
+            const month = document.getElementById('recordMonth').value;
+            if (!month) {
+                alert('記録年月を選択してください');
+                return;
+            }
+
+            const recordData = {
+                month: month,
+                categories: {}
+            };
+
+            categories.forEach(category => {
+                const products = [];
+                const container = document.getElementById(`products-${category.replace(/[（）]/g, '')}`);
+                
+                Array.from(container.children).forEach((item, index) => {
+                    const isCash = category === "現金";
+                    const name = document.getElementById(`productName-${category.replace(/[（）]/g, '')}-${index}`).value;
+                    
+                    if (!name) return;
+
+                    const product = {
+                        name: name,
+                        tag: document.getElementById(`tag-${category.replace(/[（）]/g, '')}-${index}`).value
+                    };
+
+                    if (isCash) {
+                        product.amount = parseFloat(document.getElementById(`amount-${category.replace(/[（）]/g, '')}-${index}`).value) || 0;
+                    } else {
+                        product.valuation = parseFloat(document.getElementById(`valuation-${category.replace(/[（）]/g, '')}-${index}`).value) || 0;
+                        product.profitSign = document.getElementById(`profitSign-${category.replace(/[（）]/g, '')}-${index}`).value;
+                        product.profitAmount = parseFloat(document.getElementById(`profitAmount-${category.replace(/[（）]/g, '')}-${index}`).value) || 0;
+                    }
+
+                    products.push(product);
+                });
+
+                recordData.categories[category] = products;
+            });
+
+            // 既存の記録を更新または追加
+            const existingIndex = appData.records.findIndex(r => r.month === month);
+            if (existingIndex >= 0) {
+                appData.records[existingIndex] = recordData;
+            } else {
+                appData.records.push(recordData);
+                appData.records.sort((a, b) => a.month.localeCompare(b.month));
+            }
+
+            saveData();
+            alert('記録を保存しました');
+            setDefaultMonth();
+        }
+
+        // タブ切り替え
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.target.closest('.tab-button').classList.add('active');
+
+            if (tabId === 'progressTab') {
+                updateProgressTab();
+            } else if (tabId === 'recordTab') {
+                renderCategories();
+            }
+        }
+
+        // 推移タブ更新
+        function updateProgressTab() {
+            updateSummary();
+            renderCharts();
+            renderRecordList();
+        }
+
+        // サマリー更新
+        function updateSummary() {
+            if (appData.records.length === 0) {
+                document.getElementById('totalAssets').textContent = '¥0万';
+                document.getElementById('totalProfitLoss').textContent = '損益: ¥0万';
+                return;
+            }
+
+            const latestRecord = appData.records[appData.records.length - 1];
+            let totalAssets = 0;
+            let totalProfit = 0;
+
+            categories.forEach(category => {
+                const products = latestRecord.categories[category] || [];
+                products.forEach(product => {
+                    if (category === "現金") {
+                        totalAssets += product.amount || 0;
+                    } else {
+                        totalAssets += product.valuation || 0;
+                        const profit = (product.profitSign === '-' ? -1 : 1) * (product.profitAmount || 0);
+                        totalProfit += profit;
+                    }
+                });
+            });
+
+            document.getElementById('totalAssets').textContent = `¥${totalAssets.toLocaleString()}万`;
+            const profitClass = totalProfit >= 0 ? 'positive' : 'negative';
+            const profitSign = totalProfit >= 0 ? '+' : '';
+            document.getElementById('totalProfitLoss').innerHTML = `損益: <span style="color: ${totalProfit >= 0 ? 'var(--secondary)' : 'var(--danger)'}">¥${profitSign}${totalProfit.toLocaleString()}万</span>`;
+        }
+
+        // グラフ描画
+        let barChart, pieChart;
+
+        function renderCharts() {
+            renderBarChart();
+            renderPieChart();
+            renderAllocationDiff();
+        }
+
+        function renderBarChart() {
+            const ctx = document.getElementById('barChart');
+            if (barChart) barChart.destroy();
+
+            const months = appData.records.map(r => r.month);
+            const tagTotals = {};
+
+            appData.tags.forEach(tag => {
+                tagTotals[tag] = appData.records.map(record => {
+                    let total = 0;
+                    categories.forEach(category => {
+                        const products = record.categories[category] || [];
+                        products.forEach(product => {
+                            if (product.tag === tag) {
+                                if (category === "現金") {
+                                    total += product.amount || 0;
+                                } else {
+                                    total += product.valuation || 0;
+                                }
+                            }
+                        });
+                    });
+                    return total;
+                });
+            });
+
+            const colors = {
+                "現金": "#10b981",
+                "株式(分散)": "#3b82f6",
+                "株式(集中)": "#f59e0b"
+            };
+
+            const datasets = appData.tags.map(tag => ({
+                label: tag,
+                data: tagTotals[tag],
+                backgroundColor: colors[tag] || "#6366f1"
+            }));
+
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true,
+                            ticks: { color: '#cbd5e1' },
+                            grid: { color: '#334155' }
+                        },
+                        y: {
+                            stacked: true,
+                            ticks: { color: '#cbd5e1' },
+                            grid: { color: '#334155' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#cbd5e1' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    const value = context.parsed.y;
+                                    const total = context.chart.data.datasets.reduce((sum, dataset) => 
+                                        sum + dataset.data[context.dataIndex], 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ¥${value.toLocaleString()}万 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderPieChart() {
+            const ctx = document.getElementById('pieChart');
+            if (pieChart) pieChart.destroy();
+
+            if (appData.records.length === 0) return;
+
+            const latestRecord = appData.records[appData.records.length - 1];
+            const productData = [];
+
+            categories.forEach(category => {
+                const products = latestRecord.categories[category] || [];
+                products.forEach(product => {
+                    const name = category === "現金" ? "現金" : product.name;
+                    const value = category === "現金" ? (product.amount || 0) : (product.valuation || 0);
+                    
+                    const existing = productData.find(p => p.name === name);
+                    if (existing) {
+                        existing.value += value;
+                    } else {
+                        productData.push({ name, value });
+                    }
+                });
+            });
+
+            const colors = [
+                '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', 
+                '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#14b8a6'
+            ];
+
+            pieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: productData.map(p => p.name),
+                    datasets: [{
+                        data: productData.map(p => p.value),
+                        backgroundColor: colors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#cbd5e1' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ¥${value.toLocaleString()}万 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderAllocationDiff() {
+            if (appData.records.length === 0) {
+                document.getElementById('allocationDiff').innerHTML = '<h4>目標保有割合との差分</h4><p style="color: var(--text-muted);">記録がありません</p>';
+                return;
+            }
+
+            const latestRecord = appData.records[appData.records.length - 1];
+            const actualAllocation = {};
+            let total = 0;
+
+            appData.tags.forEach(tag => {
+                actualAllocation[tag] = 0;
+            });
+
+            categories.forEach(category => {
+                const products = latestRecord.categories[category] || [];
+                products.forEach(product => {
+                    const value = category === "現金" ? (product.amount || 0) : (product.valuation || 0);
+                    if (product.tag && actualAllocation[product.tag] !== undefined) {
+                        actualAllocation[product.tag] += value;
+                    }
+                    total += value;
+                });
+            });
+
+            let html = '<h4>目標保有割合との差分</h4>';
+            appData.tags.forEach(tag => {
+                const actualPercent = total > 0 ? (actualAllocation[tag] / total * 100) : 0;
+                const targetPercent = appData.targetAllocation[tag] || 0;
+                const diff = actualPercent - targetPercent;
+                const diffClass = diff >= 0 ? 'positive' : 'negative';
+                const diffSign = diff >= 0 ? '+' : '';
+
+                html += `
+                    <div class="allocation-diff">
+                        <span class="label">${tag}</span>
+                        <span class="value ${diffClass}">${actualPercent.toFixed(1)}% (目標: ${targetPercent}%, ${diffSign}${diff.toFixed(1)}%)</span>
+                    </div>
+                `;
+            });
+
+            document.getElementById('allocationDiff').innerHTML = html;
+        }
+
+        // 記録リスト表示
+        function renderRecordList() {
+            const container = document.getElementById('recordListContainer');
+            
+            if (appData.records.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted);">記録がありません</p>';
+                return;
+            }
+
+            container.innerHTML = appData.records.map(record => {
+                let total = 0;
+                let profit = 0;
+
+                categories.forEach(category => {
+                    const products = record.categories[category] || [];
+                    products.forEach(product => {
+                        if (category === "現金") {
+                            total += product.amount || 0;
+                        } else {
+                            total += product.valuation || 0;
+                            const p = (product.profitSign === '-' ? -1 : 1) * (product.profitAmount || 0);
+                            profit += p;
+                        }
+                    });
+                });
+
+                const profitSign = profit >= 0 ? '+' : '';
+                const profitColor = profit >= 0 ? 'var(--secondary)' : 'var(--danger)';
+
+                return `
+                    <div class="record-item" onclick="editRecord('${record.month}')">
+                        <div class="record-item-header">
+                            <span class="record-item-month">${record.month}</span>
+                            <span class="record-item-total">¥${total.toLocaleString()}万</span>
+                        </div>
+                        <div class="record-item-profit" style="color: ${profitColor}">
+                            損益: ${profitSign}¥${profit.toLocaleString()}万
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 記録編集
+        function editRecord(month) {
+            document.getElementById('recordMonth').value = month;
+            renderCategories();
+            switchTab('recordTab');
+            document.querySelector('.tab-button').click();
+        }
+
+        // 設定タブ描画
+        function renderSettings() {
+            renderTargetAllocation();
+            renderTags();
+        }
+
+        function renderTargetAllocation() {
+            const container = document.getElementById('targetAllocationInputs');
+            container.innerHTML = appData.tags.map(tag => `
+                <div class="allocation-input">
+                    <label>${tag}</label>
+                    <input type="number" id="target-${tag}" value="${appData.targetAllocation[tag] || 0}" onchange="updateTargetAllocation('${tag}', this.value)">
+                    <span>%</span>
+                </div>
+            `).join('');
+        }
+
+        function updateTargetAllocation(tag, value) {
+            appData.targetAllocation[tag] = parseFloat(value) || 0;
+            saveData();
+        }
+
+        function renderTags() {
+            const container = document.getElementById('tagList');
+            container.innerHTML = appData.tags.map((tag, index) => `
+                <div class="tag-item">
+                    <input type="text" value="${tag}" onchange="updateTag(${index}, this.value)">
+                    <button onclick="deleteTag(${index})">削除</button>
+                </div>
+            `).join('');
+        }
+
+        function updateTag(index, value) {
+            const oldTag = appData.tags[index];
+            appData.tags[index] = value;
+            
+            // 目標割合も更新
+            if (appData.targetAllocation[oldTag] !== undefined) {
+                appData.targetAllocation[value] = appData.targetAllocation[oldTag];
+                delete appData.targetAllocation[oldTag];
+            }
+            
+            saveData();
+            renderSettings();
+        }
+
+        function deleteTag(index) {
+            const tag = appData.tags[index];
+            if (confirm(`タグ「${tag}」を削除しますか？`)) {
+                appData.tags.splice(index, 1);
+                delete appData.targetAllocation[tag];
+                saveData();
+                renderSettings();
+            }
+        }
+
+        function addNewTag() {
+            const newTag = prompt('新しいタグ名を入力してください');
+            if (newTag && newTag.trim()) {
+                appData.tags.push(newTag.trim());
+                appData.targetAllocation[newTag.trim()] = 0;
+                saveData();
+                renderSettings();
+            }
+        }
+
+        // ページ読み込み時に初期化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
